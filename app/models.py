@@ -10,6 +10,9 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(128), index=True, unique=True, nullable=False)
     password = db.Column(db.String(128),nullable=False)
     user_level = db.Column(db.Integer,nullable= False)
+    posts = db.relationship('Post', backref='author', lazy='dynamic')
+    about_me = db.Column(db.String(140))
+    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
 
 
     def __repr__(self):
@@ -31,6 +34,9 @@ class Post(db.Model):
     body = db.Column(db.String(140))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __repr__(self):
+        return '<Post {}>'.format(self.body)
 
 @login.user_loader
 def load_user(id):
