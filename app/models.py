@@ -47,13 +47,29 @@ class Post(db.Model):
     verified = db.Column(db.BOOLEAN)
     participants = db.relationship('User',secondary=participants,
                                    primaryjoin =(participants.c.post_id == id),
-                                   secondaryjoin =(participants.c._id == id))
+                                   secondaryjoin =(participants.c.user_id == id),
+                                   backref=db.backref('participants',lazy=True),lazy=True)
 
 
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)
 
+    def join(self, user):
+        if not self.is_joining(user):
+            self.participants.append(user)
+
+    def leave(self, user):
+        if self.is_joining(user):
+            self.participants.remove(user)
+
+    def is_joining(self, user):
+        return self.participants.filter(
+            participants.c.user_id == user.id).count() > 0
+
+    def Participant_list(self):
+        return User.query.join(participants,(participants.c.user_id == User.id)).\
+            filter(participants.c.post_id == self.id)
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
