@@ -21,6 +21,6 @@
 {%  block content %}
     <h1>HI, {{ current_user.username }}!</h1>
     {% for i in posts  %}
-    <div><p>{{ i.author.username }} says: <b>{{ i.body }}</b></p></div>
+    <div><p>{{ i.title }} is a : <b>{{ i.body }}</b></p></div>
     {%  endfor %}
 {%  endblock %}

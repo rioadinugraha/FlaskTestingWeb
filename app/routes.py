@@ -1,9 +1,9 @@
 from app import app,db
 
 from flask import render_template,flash,redirect,url_for
-from app.forms import LoginForm,RegistrationForm
+from app.forms import LoginForm,RegistrationForm,PostForm
 from flask_login import current_user,login_user
-from app.models import User
+from app.models import User,Post
 from flask_login import logout_user
 from flask_login import login_required
 from flask import request
@@ -47,6 +47,7 @@ def index():
             'body': 'The Avengers movie was so cool!'
         }
     ]
+    posts = Post.query.all() #change this to only query for verified ones only
     return render_template('index.html',title='Home Page',posts=posts)
 
 
@@ -99,3 +100,16 @@ def user(username):
     ]
     return render_template('user.html',user=user, posts=posts)
 
+@app.route('/make_event',methods=['GET','POST'])
+@login_required
+def make_post():
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(title=form.title.data, body = form.details.data,
+                    user_id = current_user,max_participant=form.max_participant.data,
+                    start_time = form.start_time.data)
+        db.session.add(post)
+        db.session.commit()
+        flash('We have received your application')
+        return redirect(url_for('index'))
+    return render_template('make_event.html',user=user)

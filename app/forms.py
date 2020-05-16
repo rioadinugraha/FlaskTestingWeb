@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,BooleanField,SubmitField,TextAreaField
-from wtforms.validators import DataRequired, ValidationError,Email,EqualTo,Length
+from wtforms import StringField,PasswordField,BooleanField,SubmitField,TextAreaField,DateTimeField,IntegerField
+from wtforms.validators import DataRequired, ValidationError,Email,EqualTo,Length,number_range
 from app.models import User
 
 class LoginForm(FlaskForm):
@@ -41,5 +41,19 @@ class EditProfileForm(FlaskForm):
             user = User.query.filter_by(username=self.username.data).first()
             if user is not None:
                 raise ValidationError('username already exists')
+
+class PostForm(FlaskForm):
+    title = TextAreaField('Title of project',validators=[
+        DataRequired(),Length(min=1,max=100)])
+    details = TextAreaField('project details', validators=[
+        DataRequired(), Length(min=1, max=1000)])
+    start_time = DateTimeField('expected date of project')
+    max_participant = IntegerField('No of participants',validators=[
+        DataRequired(number_range(min=1,max=100))
+    ])
+
+    submit = SubmitField('Submit')
+
+
 
 
