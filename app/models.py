@@ -4,6 +4,13 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from hashlib import md5
+
+
+participants = db.Table('participants',
+                        db.Column('Participant_id', db.Integer,db.ForeignKey('user_id')),
+                        db.Column('Post_id', db.Integer, db.ForeignKey('post_id')))
+
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer,primary_key=True)
     username = db.Column(db.String(128),index=True,unique=True,nullable=False)
@@ -31,9 +38,18 @@ class User(UserMixin, db.Model):
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    body = db.Column(db.String(140))
+    Title = db.Column(db.String(100))
+    body = db.Column(db.String(1000))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    Start_time  = db.Column(db.DateTime, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),nullable=False)
+    max_participant = db.Column(db.Integer)
+    verified = db.Column(db.BOOLEAN)
+    participants = db.relationship('User',secondary=participants,
+                                   primaryjoin =(participants.c.post_id == id),
+                                   secondaryjoin =(participants.c._id == id))
+
+
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)
@@ -41,5 +57,6 @@ class Post(db.Model):
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
+
 
 

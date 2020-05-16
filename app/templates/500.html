@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>An unexpected error has occurred</h1>
-    <p>The administrator has been notified. Sorry for the inconvenience!</p>
-    <p><a href="{{ url_for('index') }}">Back</a></p>
+    <h1>500 internal error found</h1>
+    <p> Errors found in message, changes are not committed</p>
+    <p> <a href="{{url_for('index') }}">Return to Main</a> </p>
+
 {% endblock %}
