@@ -7,8 +7,8 @@ from hashlib import md5
 
 
 participants = db.Table('participants',
-                        db.Column('user_id', db.Integer,db.ForeignKey('user.id')),
-                        db.Column('post_id', db.Integer, db.ForeignKey('post.id')))
+                        db.Column('user_id', db.Integer, db.ForeignKey('user.id'),primary_key=True),
+                        db.Column('post_id', db.Integer, db.ForeignKey('post.id'),primary_key=True))
 
 
 class User(UserMixin, db.Model):
@@ -40,15 +40,16 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100),nullable = False , index = True)
     body = db.Column(db.String(1000))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.now())
     start_time  = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'),nullable=False)
     max_participant = db.Column(db.Integer)
     verified = db.Column(db.BOOLEAN,nullable=False,default = False)
-    participants = db.relationship('User',secondary=participants,
-                                   primaryjoin =(participants.c.post_id == id),
-                                   secondaryjoin =(participants.c.user_id == id),
-                                   backref=db.backref('participants',lazy=True),lazy=True)
+
+    participant_count = db.relationship('User', secondary=participants,
+                                        primaryjoin =(participants.c.post_id == id),
+                                        secondaryjoin =(participants.c.user_id == User.id),
+                                        backref=db.backref('Post',lazy=True), lazy=True)
 
 
 
@@ -56,18 +57,19 @@ class Post(db.Model):
         return '<Post {}>'.format(self.title)
 
     def join(self, user):
-        if not self.is_joining(user):
-            self.participants.append(user)
+        if not self.has_joined(user):
+            self.participant_count.append(user)
 
     def leave(self, user):
         if self.is_joining(user):
-            self.participants.remove(user)
+            self.participant_count.remove(user)
 
-    def is_joining(self, user):
-        return self.participants.filter(
-            participants.c.user_id == user.id).count() > 0
+    def has_joined(self, user):
+        # return self.participant_count.filter(
+        #     participants.c.user_id == user.id).count() > 0
+        return Post.query.filter(participants.c.user_id == user.id, participants.c.post_id == self.id).count()> 0
 
-    def Participant_list(self):
+    def participant_list(self):
         return User.query.join(participants,(participants.c.user_id == User.id)).\
             filter(participants.c.post_id == self.id)
 
