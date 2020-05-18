@@ -112,4 +112,4 @@ def make_post():
         db.session.commit()
         flash('We have received your application')
         return redirect(url_for('index'))
-    return render_template('make_event.html',user=user)
+    return render_template('make_event.html',user=user, form=form)
