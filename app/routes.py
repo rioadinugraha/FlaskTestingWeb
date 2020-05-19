@@ -1,7 +1,7 @@
 from app import app,db
 
 from flask import render_template,flash,redirect,url_for
-from app.forms import LoginForm,RegistrationForm,PostForm
+from app.forms import LoginForm,RegistrationForm,PostForm,EmptyForm
 from flask_login import current_user,login_user
 from app.models import User,Post
 from flask_login import logout_user
@@ -47,8 +47,10 @@ def index():
             'body': 'The Avengers movie was so cool!'
         }
     ]
-    posts = Post.query.all() #change this to only query for verified ones only
-    return render_template('index.html',title='Home Page',posts=posts)
+    posts = Post.query.filter_by(verified=True).order_by(Post.timestamp.desc()).all()
+    posts = Post.query.order_by(Post.timestamp.desc()).all() #change this to only query for verified ones only
+    form = EmptyForm()
+    return render_template('index.html',title='Home Page',posts=posts, user = current_user,form = form)
 
 
 @app.route('/login', methods = ['GET','POST'])
@@ -113,3 +115,64 @@ def make_post():
         flash('We have received your application')
         return redirect(url_for('index'))
     return render_template('make_event.html',user=user, form=form)
+
+@app.route('/find_events')
+@login_required
+def explore():
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template('index.html', title='Explore', posts=posts)
+
+
+@app.route('/event/<id>')
+@login_required
+def event_details(id):
+    post = Post.query.filter_by(id = id).first_or_404()
+    form = EmptyForm()
+    list_of_participants = post.participant_list()
+    return render_template('event_details.html',post = post, user=current_user,form =form, list_of_participants=list_of_participants)
+
+@app.route('/join/<id>',methods=['Post'])
+@login_required
+def join(id):
+    post = Post.query.filter_by(id=id).first_or_404()
+    form = EmptyForm()
+    if form.validate_on_submit():
+        post = Post.query.filter_by(id = id).first()
+        if post is None:
+            flash("event {} does not exist".format(id))
+            return redirect(url_for('index'))
+        # if post.verified is False:
+        #     flash("event is not verified yet")
+        #     return redirect(url_for('event',id=id))
+        if post.has_joined(current_user) is True:
+            flash('you have already joined this event')
+            return redirect(url_for('event_details',id=id))
+        post.join(current_user)
+        db.session.commit()
+        flash('you have successfully joined the event!!')
+        return redirect(url_for('event_details',id=id))
+    else:
+        return redirect(url_for(index))
+
+@app.route('/leave/<id>',methods=['Post'])
+@login_required
+def leave(id):
+    post = Post.query.filter_by(id=id).first_or_404()
+    form = EmptyForm()
+    if form.validate_on_submit():
+        post = Post.query.filter_by(id = id).first()
+        if post is None:
+            flash("event {} does not exist".format(id))
+            return redirect(url_for('index'))
+        # if post.verified is False:
+        #     flash("event is not verified yet")
+        #     return redirect(url_for('event_details',id=id))
+        if post.has_joined(current_user) is False:
+            flash('you have not joined this event')
+            return redirect(url_for('event_details',id=id))
+        post.leave(current_user)
+        db.session.commit()
+        flash('you have successfully left the event!!')
+        return redirect(url_for('event_details',id=id))
+    else:
+        return redirect(url_for(index))

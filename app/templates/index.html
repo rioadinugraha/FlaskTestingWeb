@@ -17,10 +17,11 @@
 {#</html>#}
 
 
-{%  extends  "base.html"%}
+{%  extends "base.html"%}
 {%  block content %}
     <h1>HI, {{ current_user.username }}!</h1>
-    {% for i in posts  %}
-    <div><p>{{ i.title }} is a : <b>{{ i.body }}</b></p></div>
+
+    {% for post in posts  %}
+        {% include '_post.html' %}
     {%  endfor %}
 {%  endblock %}

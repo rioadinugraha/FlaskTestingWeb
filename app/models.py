@@ -61,7 +61,7 @@ class Post(db.Model):
             self.participant_count.append(user)
 
     def leave(self, user):
-        if self.is_joining(user):
+        if self.has_joined(user):
             self.participant_count.remove(user)
 
     def has_joined(self, user):
@@ -71,7 +71,7 @@ class Post(db.Model):
 
     def participant_list(self):
         return User.query.join(participants,(participants.c.user_id == User.id)).\
-            filter(participants.c.post_id == self.id)
+            filter(participants.c.post_id == self.id).all()
 
 
 @login.user_loader

@@ -19,20 +19,31 @@ class UserModelCase(unittest.TestCase):
         self.assertTrue(u.check_password('cat'))
 
     def test_avatar(self):
-        u = User(username='john', email='john@example.com',user_level = 3)
+        u = User(username='john', email='john@example.com')
         self.assertEqual(u.avatar(128), ('https://www.gravatar.com/avatar/'
                                          'd4c74594d841139328695756648b6bd6'
                                          '?d=identicon&s=128'))
 
     def test_join(self):
-        u1 = User(username='john', email='john@example.com',user_level = 3)
-        u2 = User(username='susan', email='susan@example.com',user_level = 3)
+        u1 = User(username='john', email='john@example.com')
+        u2 = User(username='susan', email='susan@example.com')
+        u1.set_password('cat')
+        u2.set_password('dog')
+        p = post = Post(title="test", body = "test body",
+                    user_id = u2,max_participant=20)
         db.session.add(u1)
         db.session.add(u2)
+        db.session.add(p)
         db.session.commit()
-        self.assertEqual(u1.followed.all(), [])
-        self.assertEqual(u1.followers.all(), [])
+        # self.assertEqual(u1.followed.all(), [])
+        # self.assertEqual(u1.followers.all(), [])
 
-
+        u1.follow(u2)
+        db.session.commit()
+        self.assertTrue(u1.is_following(u2))
+        # self.assertEqual(u1.followed.count(), 1)
+        # self.assertEqual(u1.followed.first().username, 'susan')
+        # self.assertEqual(u2.followers.count(), 1)
+        # self.assertEqual(u2.followers.first().username, 'john')
 
 

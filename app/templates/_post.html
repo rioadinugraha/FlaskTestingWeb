@@ -1,7 +1,23 @@
-
-<table>
+  <table>
         <tr valign="top">
-            <td><img src="{{ post.author.avatar(36) }}"></td>
-            <td>{{ post.author.username }} says:<br>{{ post.body }}</td>
+{#            <td><img src="{{ post.user_id.avatar(36) }}"></td>#}
+            <td>
+                <a href="{{ url_for('event_details', id=post.id) }}">
+                    {{ post.title }}
+                </a>
+                Details :<br>{{ post.body }}
+                {% if not post.has_joined(user)%}
+                <form action="{{ url_for('join', id =post.id) }}" method="post">
+                    {{ form.hidden_tag() }}
+                    {{ form.submit(value='join') }}
+
+                </form>
+                {% else %}
+                <form action="{{ url_for('leave', id=post.id) }}" method="post">
+                    {{ form.hidden_tag() }}
+                    {{ form.submit(value='Unfollow') }}
+                </form>
+                {% endif %}
+            </td>
         </tr>
     </table>
