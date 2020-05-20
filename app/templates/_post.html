@@ -1,23 +1,28 @@
-  <table>
+ <div class="container pt-3 pb-3 border">
+     <table class="table table-responsive table-borderless">
         <tr valign="top">
-{#            <td><img src="{{ post.user_id.avatar(36) }}"></td>#}
+            {#<td><img src="{{ post.user_id.avatar(36) }}"></td>#}
             <td>
                 <a href="{{ url_for('event_details', id=post.id) }}">
-                    {{ post.title }}
+                    <h2>{{ post.title }}</h2>
                 </a>
-                Details :<br>{{ post.body }}
+                <hr>
+                <h6>Details:</h6>
+                <p>{{ post.body }}<p>
                 {% if not post.has_joined(user)%}
-                <form action="{{ url_for('join', id =post.id) }}" method="post">
-                    {{ form.hidden_tag() }}
-                    {{ form.submit(value='join') }}
+                    <form action="{{ url_for('join', id =post.id) }}" method="post">
+                        {{ form.hidden_tag() }}
+                        {{ form.submit(value='join') }}
 
-                </form>
+                    </form>
                 {% else %}
-                <form action="{{ url_for('leave', id=post.id) }}" method="post">
-                    {{ form.hidden_tag() }}
-                    {{ form.submit(value='Unfollow') }}
-                </form>
+                    <form action="{{ url_for('leave', id=post.id) }}" method="post">
+                        {{ form.hidden_tag() }}
+                        {{ form.submit(value='Unfollow') }}
+                    </form>
                 {% endif %}
             </td>
         </tr>
     </table>
+ </div>
+ <br>
