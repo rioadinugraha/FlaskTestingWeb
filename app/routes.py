@@ -37,20 +37,11 @@ def before_request():
 @app.route('/index')
 @login_required
 def index():
-    posts = [
-        {
-            'author': {'username': 'John'},
-            'body': 'Beautiful day in Portland!'
-        },
-        {
-            'author': {'username': 'Susan'},
-            'body': 'The Avengers movie was so cool!'
-        }
-    ]
     posts = Post.query.filter_by(verified=True).order_by(Post.timestamp.desc()).all()
-    posts = Post.query.order_by(Post.timestamp.desc()).all() #change this to only query for verified ones only
+    # posts = Post.query.order_by(Post.timestamp.desc()).all() #change this to only query for verified ones only
     form = EmptyForm()
-    return render_template('index.html',title='Home Page',posts=posts, user = current_user,form = form)
+    verify = False
+    return render_template('index.html',title='Home Page',posts=posts, user = current_user,form = form,verify = verify)
 
 
 @app.route('/login', methods = ['GET','POST'])
@@ -104,7 +95,7 @@ def user(username):
 
 @app.route('/make_event',methods=['GET','POST'])
 @login_required
-def make_post():
+def make_event():
     form = PostForm()
     if form.validate_on_submit():
         post = Post(title=form.title.data, body = form.details.data,
@@ -116,11 +107,13 @@ def make_post():
         return redirect(url_for('index'))
     return render_template('make_event.html',user=user, form=form)
 
-@app.route('/find_events')
+@app.route('/verify_events')
 @login_required
-def explore():
-    posts = Post.query.order_by(Post.timestamp.desc()).all()
-    return render_template('index.html', title='Explore', posts=posts)
+def verify_events():
+    posts = Post.query.order_by(Post.timestamp.desc()).filter_by(verified = False).all()
+    form = EmptyForm()
+    verify = True
+    return render_template('index.html',title='Home Page',posts=posts, user = current_user,form = form,verify = verify)
 
 
 @app.route('/event/<id>')
@@ -173,6 +166,27 @@ def leave(id):
         post.leave(current_user)
         db.session.commit()
         flash('you have successfully left the event!!')
+        return redirect(url_for('event_details',id=id))
+    else:
+        return redirect(url_for(index))
+
+@app.route('/verify/<id>',methods=['Post'])
+@login_required
+def verify(id):
+    post = Post.query.filter_by(id=id).first_or_404()
+    form = EmptyForm()
+    if form.validate_on_submit():
+        post = Post.query.filter_by(id = id).first()
+        if post is None:
+            flash("event {} does not exist".format(id))
+            return redirect(url_for('index'))
+
+        if post.verified is True:
+            flash('event already verified')
+            return redirect(url_for('event_details',id=id))
+        post.verified = True
+        db.session.commit()
+        flash('event is verified!!')
         return redirect(url_for('event_details',id=id))
     else:
         return redirect(url_for(index))

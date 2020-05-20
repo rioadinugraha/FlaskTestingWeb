@@ -9,18 +9,20 @@
                 <hr>
                 <h6>Details:</h6>
                 <p>{{ post.body }}<p>
+            {% if user.user_level >2 %}
                 {% if not post.has_joined(user)%}
                     <form action="{{ url_for('join', id =post.id) }}" method="post">
                         {{ form.hidden_tag() }}
                         {{ form.submit(value='join') }}
 
                     </form>
-                {% else %}
+                {% else%}
                     <form action="{{ url_for('leave', id=post.id) }}" method="post">
                         {{ form.hidden_tag() }}
                         {{ form.submit(value='Unfollow') }}
                     </form>
                 {% endif %}
+            {% endif %}
             </td>
         </tr>
     </table>
