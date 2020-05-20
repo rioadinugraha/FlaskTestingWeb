@@ -19,7 +19,7 @@ def edit_profile():
         current_user.username = form.username.data
         current_user.about_me = form.about_me.data
         db.session.commit()
-        flash('username and profile changed')
+        flash('Username and profile changed', 'success')
         return redirect(url_for('edit_profile'))
     elif request.method == 'GET':
         form.username.data = current_user.username
@@ -53,7 +53,7 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             # flash('Login requested for user {}, remember_me={}'.format(
-            flash('Invalid username or password')
+            flash('Invalid username or password', 'danger')
             return redirect(url_for('login'))
         login_user(user,remember=form.remember_me.data)
         next_page = request.args.get('next')
@@ -79,7 +79,7 @@ def register():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash('Congratulations, you are now a registered user!')
+        flash('Congratulations, you are now a registered user!', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
@@ -103,7 +103,7 @@ def make_event():
                     start_time = form.start_time.data)
         db.session.add(post)
         db.session.commit()
-        flash('We have received your application')
+        flash('We have received your application', 'success')
         return redirect(url_for('index'))
     return render_template('make_event.html',user=user, form=form)
 
@@ -132,17 +132,17 @@ def join(id):
     if form.validate_on_submit():
         post = Post.query.filter_by(id = id).first()
         if post is None:
-            flash("event {} does not exist".format(id))
+            flash("Event {} does not exist".format(id), 'warning')
             return redirect(url_for('index'))
         # if post.verified is False:
         #     flash("event is not verified yet")
         #     return redirect(url_for('event',id=id))
         if post.has_joined(current_user) is True:
-            flash('you have already joined this event')
+            flash('You have already joined this event', 'info')
             return redirect(url_for('event_details',id=id))
         post.join(current_user)
         db.session.commit()
-        flash('you have successfully joined the event!!')
+        flash('You have successfully joined the event!!', 'success')
         return redirect(url_for('event_details',id=id))
     else:
         return redirect(url_for(index))
@@ -155,17 +155,17 @@ def leave(id):
     if form.validate_on_submit():
         post = Post.query.filter_by(id = id).first()
         if post is None:
-            flash("event {} does not exist".format(id))
+            flash("Event {} does not exist".format(id), 'danger')
             return redirect(url_for('index'))
         # if post.verified is False:
         #     flash("event is not verified yet")
         #     return redirect(url_for('event_details',id=id))
         if post.has_joined(current_user) is False:
-            flash('you have not joined this event')
+            flash('You have not joined this event', 'danger')
             return redirect(url_for('event_details',id=id))
         post.leave(current_user)
         db.session.commit()
-        flash('you have successfully left the event!!')
+        flash('You have successfully left the event!!', 'info')
         return redirect(url_for('event_details',id=id))
     else:
         return redirect(url_for(index))
@@ -178,15 +178,15 @@ def verify(id):
     if form.validate_on_submit():
         post = Post.query.filter_by(id = id).first()
         if post is None:
-            flash("event {} does not exist".format(id))
+            flash("Event {} does not exist".format(id), 'danger')
             return redirect(url_for('index'))
 
         if post.verified is True:
-            flash('event already verified')
+            flash('Event already verified', 'info')
             return redirect(url_for('event_details',id=id))
         post.verified = True
         db.session.commit()
-        flash('event is verified!!')
+        flash('Event is verified!!', 'success')
         return redirect(url_for('event_details',id=id))
     else:
         return redirect(url_for(index))
