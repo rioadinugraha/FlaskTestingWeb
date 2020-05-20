@@ -99,7 +99,7 @@ def make_event():
     form = PostForm()
     if form.validate_on_submit():
         post = Post(title=form.title.data, body = form.details.data,
-                    user_id = current_user,max_participant=form.max_participant.data,
+                    user_id = current_user.id,max_participant=form.max_participant.data,
                     start_time = form.start_time.data)
         db.session.add(post)
         db.session.commit()
