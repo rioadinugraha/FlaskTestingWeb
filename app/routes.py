@@ -39,17 +39,21 @@ def before_request():
 @login_required
 def index():
     page = request.args.get('page',1,type = int)
-    posts = Post.query.filter_by(verified=True).order_by(Post.timestamp.desc()).all().\
-        paginate(page, app.config['POSTS_PER_PAGE'],False)
+    posts = Post.query.filter_by(verified=True).order_by(Post.timestamp.desc())
+    posts = posts.paginate(page, app.config['EVENTS_PER_PAGE'],False)
     # posts = Post.query.order_by(Post.timestamp.desc()).all() #change this to only query for verified ones only
     form = EmptyForm()
     verify = False
-    next_url = url_for('index', page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('index', page=posts.prev_num) \
-        if posts.has_prev else None
+    if posts.has_next:
+        next_url = url_for('index', page=posts.next_num)
+    else:
+        next_url = None
+    if posts.has_prev:
+        prev_url = url_for('index', page=posts.next_num)
+    else:
+        prev_url = None
     return render_template('index.html',title='Home Page',
-                           posts=posts, user = current_user,form = form,verify = verify,
+                           posts=posts.items, user = current_user,form = form,verify = verify,
                            next_url=next_url, prev_url=prev_url)
 
 
@@ -125,14 +129,15 @@ def make_event():
 @login_required
 def verify_events():
     page = request.args.get('page', 1, type=int)
-    posts = Post.query.order_by(Post.timestamp.desc()).filter_by(verified = False).all().paginate(page, app.config['POSTS_PER_PAGE'],False)
+    posts = Post.query.filter_by(verified=True).order_by(Post.timestamp.desc())
+    posts = posts.paginate(page, app.config['EVENTS_PER_PAGE'], False)
     form = EmptyForm()
     verify = True
     next_url = url_for('explore', page=posts.next_num) \
         if posts.has_next else None
     prev_url = url_for('explore', page=posts.prev_num) \
         if posts.has_prev else None
-    return render_template('index.html',title='Home Page',posts=posts, user = current_user,form = form,verify = verify,
+    return render_template('index.html',title='Home Page',posts=posts.items, user = current_user,form = form,verify = verify,
                            next_url = next_url,prev_url=prev_url)
 
 
@@ -233,7 +238,7 @@ def delete_event(id):
     else:
         return redirect(url_for(index))
 
-@app.route('reset_password_request', methods=['GET','POST'])
+@app.route('/reset_password_request', methods=['GET','POST'])
 def reset_password_request():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
