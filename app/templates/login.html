@@ -35,9 +35,15 @@
             </form>
             <div class="border-top pt-3">
                 <small style="color:lightgray;">
+                    forgot your password? <a class="ml-2" href="{{ url_for('reset_password_request') }}">Click here to reset</a>
+                </small>
+            </div>
+            <div class="border-top pt-3">
+                <small style="color:lightgray;">
                     Haven't made an account? <a class="ml-2" href="{{ url_for('register') }}">Register Now</a>
                 </small>
             </div>
+
         </div> 
     </div>
 </div>

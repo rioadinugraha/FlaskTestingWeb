@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField,PasswordField,BooleanField,SubmitField,TextAreaField,DateTimeField,IntegerField
+from wtforms.fields.html5 import DateTimeLocalField
 from wtforms.validators import DataRequired, ValidationError,Email,EqualTo,Length,number_range
 from app.models import User
 
@@ -47,15 +48,15 @@ class PostForm(FlaskForm):
         DataRequired(),Length(min=1,max=100)])
     details = TextAreaField('project details', validators=[
         DataRequired(), Length(min=1, max=1000)])
-    start_time = DateTimeField('expected date of project')
+    start_time = DateTimeField('expected date of project',format='%m/%d/%y %H:%M')
     max_participant = IntegerField('No of participants',validators=[
-        DataRequired(number_range(min=1,max=100))
-    ])
-
-    submit = SubmitField('Submit')
+        DataRequired(number_range(min=1,max=100)) ])
+    submit = SubmitField('Post')
 
 class EmptyForm(FlaskForm):
     submit = SubmitField('Submit')
 
-
+class ResetPasswordRequestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(),Email()])
+    submit = SubmitField('Reset Password request')
 

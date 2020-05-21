@@ -9,7 +9,8 @@ from flask_login import login_required
 from flask import request
 from werkzeug.urls import url_parse
 from datetime import datetime
-from app.forms import EditProfileForm
+from app.forms import EditProfileForm,ResetPasswordRequestForm
+from app.email import send_password_reset_email
 
 @app.route('/edit_profile',methods =['GET','POST'])
 @login_required
@@ -37,11 +38,19 @@ def before_request():
 @app.route('/index')
 @login_required
 def index():
-    posts = Post.query.filter_by(verified=True).order_by(Post.timestamp.desc()).all()
+    page = request.args.get('page',1,type = int)
+    posts = Post.query.filter_by(verified=True).order_by(Post.timestamp.desc()).all().\
+        paginate(page, app.config['POSTS_PER_PAGE'],False)
     # posts = Post.query.order_by(Post.timestamp.desc()).all() #change this to only query for verified ones only
     form = EmptyForm()
     verify = False
-    return render_template('index.html',title='Home Page',posts=posts, user = current_user,form = form,verify = verify)
+    next_url = url_for('index', page=posts.next_num) \
+        if posts.has_next else None
+    prev_url = url_for('index', page=posts.prev_num) \
+        if posts.has_prev else None
+    return render_template('index.html',title='Home Page',
+                           posts=posts, user = current_user,form = form,verify = verify,
+                           next_url=next_url, prev_url=prev_url)
 
 
 @app.route('/login', methods = ['GET','POST'])
@@ -91,13 +100,18 @@ def user(username):
         {'author' : user , 'body': 'Test post #1'},
         {'author' : user,  'body': 'Test post #2'}
     ]
-    return render_template('user.html',user=user, posts=posts)
+    return render_template('user.html',user=user,title='Post', posts=posts)
 
 @app.route('/make_event',methods=['GET','POST'])
 @login_required
 def make_event():
     form = PostForm()
+    print("hello")
+    print(form.title.data)
+    print(form.start_time.data)
+    print(form.max_participant.data)
     if form.validate_on_submit():
+        print("in here")
         post = Post(title=form.title.data, body = form.details.data,
                     user_id = current_user.id,max_participant=form.max_participant.data,
                     start_time = form.start_time.data)
@@ -105,15 +119,21 @@ def make_event():
         db.session.commit()
         flash('We have received your application')
         return redirect(url_for('index'))
-    return render_template('make_event.html',user=user, form=form)
+    return render_template('make_event.html',user=current_user, form=form)
 
 @app.route('/verify_events')
 @login_required
 def verify_events():
-    posts = Post.query.order_by(Post.timestamp.desc()).filter_by(verified = False).all()
+    page = request.args.get('page', 1, type=int)
+    posts = Post.query.order_by(Post.timestamp.desc()).filter_by(verified = False).all().paginate(page, app.config['POSTS_PER_PAGE'],False)
     form = EmptyForm()
     verify = True
-    return render_template('index.html',title='Home Page',posts=posts, user = current_user,form = form,verify = verify)
+    next_url = url_for('explore', page=posts.next_num) \
+        if posts.has_next else None
+    prev_url = url_for('explore', page=posts.prev_num) \
+        if posts.has_prev else None
+    return render_template('index.html',title='Home Page',posts=posts, user = current_user,form = form,verify = verify,
+                           next_url = next_url,prev_url=prev_url)
 
 
 @app.route('/event/<id>')
@@ -176,11 +196,13 @@ def verify(id):
     post = Post.query.filter_by(id=id).first_or_404()
     form = EmptyForm()
     if form.validate_on_submit():
+        if current_user.user_level > 2:
+            flash("you do not have the authority for this action")
+            redirect(url_for(index))
         post = Post.query.filter_by(id = id).first()
         if post is None:
             flash("event {} does not exist".format(id))
             return redirect(url_for('index'))
-
         if post.verified is True:
             flash('event already verified')
             return redirect(url_for('event_details',id=id))
@@ -190,3 +212,38 @@ def verify(id):
         return redirect(url_for('event_details',id=id))
     else:
         return redirect(url_for(index))
+
+@app.route('/delete_event/<id>',methods=['Post'])
+def delete_event(id):
+    post = Post.query.filter_by(id=id).first_or_404()
+    form = EmptyForm()
+    if form.validate_on_submit():
+
+        post = Post.query.filter_by(id=id).first()
+        if current_user.user_level > 2 and current_user.id != post.user_id:
+            flash("you do not have the authority for this action")
+            redirect(url_for(index))
+        if post is None:
+            flash("event {} does not exist".format(id))
+            return redirect(url_for(index))
+        db.session.delete(post)
+        db.session.commit()
+        flash('event is deleted!!')
+        return redirect(url_for(index))
+    else:
+        return redirect(url_for(index))
+
+@app.route('reset_password_request', methods=['GET','POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            send_password_reset_email(user)
+        flash('Check your email for further action')
+        return redirect((url_for('login')))
+    return render_template('reset_password_request.html', title = 'Reset Password', form = form)
+
+

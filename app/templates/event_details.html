@@ -30,11 +30,14 @@
 
 
     {% if post.user_id == user.id or user_level < 3 %}
-
         <h2>List of participants</h2>
     {% for user in list_of_participants  %}
             <div><p>{{user.username }} </p></div>
     {% endfor %}
+        <form action="{{ url_for('delete_event', id=post.id) }}" method="post">
+                {{ form.hidden_tag() }}
+                {{ form.submit(value='delete') }}
+        </form>
     {% endif %}
 
 
