@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="view" style="background-image: url('static/images/bluebg.jpg'); background-size: cover; 
-                        -webkit-background-size: cover; -moz-background-size: cover; -o-background-size: cover;">
+                        -webkit-background-size: cover; -moz-background-size: cover; -o-background-size: cover; height: 100%; width: 100%; position: absolute;">
      <div class="container pt-5 pb-5 border">
         <div class="jumbotron col-md-4 mx-auto" style="background:transparent;">
             <form method="POST" action="" novalidate>
@@ -26,19 +26,18 @@
                     {% endfor %}
                 </div>
                 <div class="form-group">
-                    {{ form.remember_me() }} {{ form.remember_me.label(class="form-control-label small font-weight-light", style="color:lightgray;") }}
+                    {{ form.remember_me(class="ml-1") }} {{ form.remember_me.label(class="form-control-label small font-weight-light ml-1", style="color:lightgray;") }}
+                    <small style="color:lightgray;">
+                        <a class="pl-5 ml-4" href="{{ url_for('reset_password_request') }}">Forgot password?</a>
+                    </small>
                 </div>
+
               </fieldset>
               <div class="form-group">
                 {{ form.submit(class="btn btn-sm btn-primary btn-block") }}
               </div>
             </form>
-            <div class="border-top pt-3">
-                <small style="color:lightgray;">
-                    forgot your password? <a class="ml-2" href="{{ url_for('reset_password_request') }}">Click here to reset</a>
-                </small>
-            </div>
-            <div class="border-top pt-3">
+            <div class="border-top pt-3 text-center">
                 <small style="color:lightgray;">
                     Haven't made an account? <a class="ml-2" href="{{ url_for('register') }}">Register Now</a>
                 </small>

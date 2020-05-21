@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="view" style="background-image: url('static/images/bluebg.jpg'); background-size: cover; 
-                        -webkit-background-size: cover; -moz-background-size: cover; -o-background-size: cover;">
+                        -webkit-background-size: cover; -moz-background-size: cover; -o-background-size: cover; height: 100%; width: 100%; position: absolute;">
 <div class="container-sm pt-5 border">
     <div class="jumbotron col-md-4 mx-auto" style="background:transparent;">
         <form method="POST" action="">
@@ -40,7 +40,7 @@
             {{ form.submit(class="btn btn-sm btn-primary btn-block") }}
           </div>
         </form>
-        <div class="border-top pt-3">
+        <div class="border-top pt-3 text-center">
             <small style="color:lightgray;">
                 Already have an account? <a class="ml-2" href="{{ url_for('login') }}">Log in</a>
             </small>
